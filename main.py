@@ -1,5 +1,4 @@
 import requests
-from pprint import pprint
 import os
 from datetime import datetime
 import re
@@ -11,27 +10,43 @@ BASE_PATH = os.getcwd()
 TASKS_PATH = BASE_PATH + '\\tasks\\'
 
 
-def get_info(url):
-    list = requests.get(url).json()
-    return list
+def get_info(url) -> list:
+    """
+    Функция получения данных по URL
+    :param url: URL адрес в формате string
+    :return: список словарей данных
+    """
+    return requests.get(url).json()
 
 
-def get_tasks_count(id, tasks):
+def get_tasks_count(_id, tasks) -> int:
+    """
+    Функция получения общего количества задач заданного пользователя
+    :param _id: id проверяемого пользователя
+    :param tasks: список словарей заданий пользователей
+    :return: количество заданий проверяемого пользователя
+    """
     count = 0
     for task in tasks:
         try:
-            if task['userId'] == id:
+            if task['userId'] == _id:
                 count += 1
         except KeyError:
             pass
     return count
 
 
-def get_tasks_completed(id, tasks) -> list:
+def get_tasks_completed(_id, tasks) -> list:
+    """
+    Функция получения списка выполненных задач заданного пользователя
+    :param _id: id проверяемого пользователя
+    :param tasks: список словарей заданий пользователей
+    :return: список выполненных заданий проверяемого пользователя
+    """
     task_list = []
     for task in tasks:
         try:
-            if task['userId'] == id:
+            if task['userId'] == _id:
                 if task['completed']:
                     if len(task['title']) <= 48:
                         task_list.append(task['title'])
@@ -42,11 +57,17 @@ def get_tasks_completed(id, tasks) -> list:
     return task_list
 
 
-def get_tasks_left(id, tasks) -> list:
+def get_tasks_left(_id, tasks) -> list:
+    """
+    Функция получения списка невыполненных задач заданного пользователя
+    :param _id: id проверяемого пользователя
+    :param tasks: список словарей заданий пользователей
+    :return: список оставшихся заданий проверяемого пользователя
+    """
     task_list = []
     for task in tasks:
         try:
-            if task['userId'] == id:
+            if task['userId'] == _id:
                 if not task['completed']:
                     if len(task['title']) <= 48:
                         task_list.append(task['title'])
@@ -57,15 +78,18 @@ def get_tasks_left(id, tasks) -> list:
     return task_list
 
 
-def create_file(user):
+def create_file(user) -> None:
+    """
+    Функция создания файла для пользователя
+    :param user: словарь данных пользователя
+    :return: None
+    """
     text_field = ''  # Формирование содержимого файла
     text_field += f"Отчет для {user['company']['name']}.\n"  # Первая строка
     text_field += f"{user['name']} < {user['email']}> "  # Вторая строка
 
-    current_date = datetime.now()
-    date_fixed = f"{current_date.day}.{current_date.month}.{current_date.year} {current_date.hour}:{current_date.minute}"  # поменять
-
-    text_field += f"{date_fixed}\n"  # Добавление даты в нужном формате
+    current_date = datetime.now().strftime("%d.%m.%Y %H:%M")
+    text_field += f"{current_date}\n"  # Добавление даты в нужном формате
 
     tasks = get_info(TODOS_URL)
     text_field += f"Всего задач: {get_tasks_count(user['id'], tasks)}\n"  # Третья строка
@@ -85,9 +109,13 @@ def create_file(user):
     new_file.close()
 
 
-def rename_file(old_name):
+def rename_file(old_name) -> None:
+    """
+    Функция которая переименовывает исходный файл
+    :param old_name: первоначальное имя файла (пользователя без txt)
+    :return: None
+    """
     old_path = f"{TASKS_PATH}{old_name}.txt"
-    # old_path = os.path.join(TASKS_PATH, )
     file = open(old_path, 'r')
     text = file.read()
     file.close()
@@ -99,7 +127,11 @@ def rename_file(old_name):
     os.rename(old_path, new_path)
 
 
-def create_dir():
+def create_dir() -> bool:
+    """
+    Функция создания директории, если ее еще нет
+    :return: True если директория успешно создана, False иначе
+    """
     try:
         os.mkdir(TASKS_PATH)
     except OSError:
@@ -108,16 +140,25 @@ def create_dir():
         return True
 
 
-def create_report():
-    # if create_dir():
+def create_report() -> None:
+    """
+    Функция создания отчета
+    :return:
+    """
     users_list = get_info(USERS_URL)
-    for user in users_list:
-        if not os.path.exists(os.path.join(TASKS_PATH, f"{user['username']}.txt")):
+    if create_dir():
+        for user in users_list:
             create_file(user)
-        else:
-            rename_file(user['username'])
-    # else:
-    #     print('Директория уже есть')
+    else:
+        print('Директория уже есть')
+        for user in users_list:
+            if os.path.exists(f"{TASKS_PATH}{user['username']}.txt"):
+                rename_file(user['username'])
 
 
-create_report()
+def main():
+    create_report()
+
+
+if __name__ == '__main__':
+    main()
