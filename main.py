@@ -7,7 +7,7 @@ import re
 USERS_URL = 'https://json.medrating.org/users'
 TODOS_URL = 'https://json.medrating.org/todos'
 BASE_PATH = os.getcwd()
-TASKS_PATH = BASE_PATH + '\\tasks\\'
+TASKS_PATH = os.path.join(BASE_PATH, '/tasks/')
 
 
 users_tasks = {}
@@ -47,18 +47,16 @@ def create_file(user: dict):
         text_field += f"{completed_tasks_count + left_tasks_count}\n"  # Третья строка
         text_field += f"\nЗавершенные задачи ({completed_tasks_count}):\n"
         text_field += "".join([f"{completed_task}\n" for completed_task in completed_tasks])
-        # for completed_task in completed_tasks:
-        #     text_field += f"{completed_task}\n"
 
         text_field += f"\nОставшиеся задачи ({left_tasks_count}):\n"
         text_field += "".join([f"{left_task}\n" for left_task in left_tasks])
-        # for left_task in left_tasks:
-        #     text_field += f"{left_task}\n"
     else:  # Обработка отсутствия задач у пользователя
         text_field += '0'
-
-    with open(os.path.join(TASKS_PATH, user['username'] + '.txt'), 'w') as new_file:
-        new_file.write(text_field)
+    try:  # Обработка ошибки открытия файла или записи в него
+        with open(os.path.join(TASKS_PATH, user['username'] + '.txt'), 'w') as new_file:
+            new_file.write(text_field)
+    except Exception as e:
+        print(e.args)
 
 
 def rename_file(old_name: str):
@@ -72,7 +70,7 @@ def rename_file(old_name: str):
 
     old_time = re.search(r"> (.*)\n", text).group(1)  # Поиск даты в отчете
     time_fixed = datetime.strptime(old_time, '%d.%m.%Y %H:%M').strftime('%d-%m-%YT%H-%M')  # Смена формата даты
-    new_path = f"{TASKS_PATH}old_{old_name}_{time_fixed}.txt"
+    new_path = os.path.join(TASKS_PATH, 'old_' + old_name + '_' + time_fixed + '.txt')
     try:
         os.rename(old_path, new_path)
     except FileExistsError:
