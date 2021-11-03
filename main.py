@@ -7,7 +7,7 @@ import re
 USERS_URL = 'https://json.medrating.org/users'
 TODOS_URL = 'https://json.medrating.org/todos'
 BASE_PATH = os.getcwd()
-TASKS_PATH = os.path.join(BASE_PATH, '/tasks/')
+TASKS_PATH = os.path.join(BASE_PATH, 'tasks')
 
 
 users_tasks = {}
@@ -70,7 +70,7 @@ def rename_file(old_name: str):
 
     old_time = re.search(r"> (.*)\n", text).group(1)  # Поиск даты в отчете
     time_fixed = datetime.strptime(old_time, '%d.%m.%Y %H:%M').strftime('%d-%m-%YT%H-%M')  # Смена формата даты
-    new_path = os.path.join(TASKS_PATH, 'old_' + old_name + '_' + time_fixed + '.txt')
+    new_path = os.path.join(TASKS_PATH, f"old_{old_name}_{time_fixed}.txt")
     try:
         os.rename(old_path, new_path)
     except FileExistsError:
