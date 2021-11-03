@@ -61,7 +61,7 @@ def create_file(user: dict):
 
 def rename_file(old_name: str):
     """
-    Функция которая переименовывает исходный файл
+    Функция которая переименовывает исходный файл по old_name
     :param old_name: первоначальное имя файла (пользователя без txt)
     """
     old_path = os.path.join(TASKS_PATH, old_name + '.txt')
@@ -74,7 +74,6 @@ def rename_file(old_name: str):
     try:
         os.rename(old_path, new_path)
     except FileExistsError:
-        # print(f"Файл с именем {old_path} отсутствует и будет создан заново")
         pass
 
 
